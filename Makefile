@@ -1,7 +1,8 @@
 XNET = $(addprefix net,0 1 2 3)
 XSTK = $(addprefix stack,0 1 2 3 4 5 6 7)
+XFMT = $(addprefix format,0)
 
-ALL = $(XNET) $(XSTK)
+ALL = $(XNET) $(XSTK) $(XFMT)
 
 HOSTFWD_SSH  = hostfwd=tcp::10022-:22
 HOSTFWD_NET0 = hostfwd=tcp::12999-:2999
