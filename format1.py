@@ -46,7 +46,7 @@ log.info('target_addr: %08x', target_addr)
 
 # Always use the same arg length to keep a consistent stack pointer between runs
 def get_fixed_len_fmt(fmt):
-    PAD = 25  # arbitrary, long to always fit everything
+    PAD = 15  # arbitrary, long to always fit everything
     return fit({0: fmt + '.', PAD: '\n'})
 
 
