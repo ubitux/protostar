@@ -1,6 +1,6 @@
 XNET = $(addprefix net,0 1 2 3)
 XSTK = $(addprefix stack,0 1 2 3 4 5 6 7)
-XFMT = $(addprefix format,0 1 2)
+XFMT = $(addprefix format,0 1 2 3)
 
 ALL = $(XNET) $(XSTK) $(XFMT)
 
