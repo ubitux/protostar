@@ -15,6 +15,10 @@ ISO = exploit-exercises-protostar-2.iso
 
 all: $(ALL)
 
+net: $(XNET)
+stack: $(XSTK)
+format: $(XFMT)
+
 venv:
 	virtualenv -p python2 $@
 	(. venv/bin/activate $@ && pip install pwntools)
@@ -41,4 +45,4 @@ net1: PORT = 12998
 net2: PORT = 12997
 net3: PORT = 12996
 
-.PHONY: runvm isocheck $(ALL)
+.PHONY: all net stack format runvm isocheck $(ALL)
