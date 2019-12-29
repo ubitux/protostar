@@ -27,7 +27,7 @@ isocheck: $(ISO)
 	echo "d030796b11e9251f34ee448a95272a4d432cf2ce $<" | sha1sum -c
 
 $(ISO):
-	wget https://download.vulnhub.com/exploitexercises/$@ -O $@
+	wget https://github.com/ExploitEducation/Protostar/releases/download/v2.0.0/$@ -O $@
 
 $(ALL): HOST = localhost
 $(ALL): USER = user
