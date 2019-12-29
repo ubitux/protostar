@@ -12,9 +12,6 @@ log.info('target_addr: %08x', target_addr)
 '''
       .
       .
-  4   | bp_vuln
-      +================ (printf)
-  4   | vuln+X (call)
       +---------------- <-- sp_vuln ("$0")
   4   | buf ptr         o--.
       |----------------    |
@@ -26,14 +23,6 @@ log.info('target_addr: %08x', target_addr)
       +---------------- <--'
 0x208 | buf
       +---------------- <-- bp_vuln
-  4   | bp_main
-      +================ (vuln)
-  4   | main+X (call)
-      +---------------- <-- sp_main
-  ?   | align & ~0xf
-      +---------------- <-- bp_main
-  4   | bp_start
-      +================ (main)
   ?   |     ...
       `---------------- 0xbfffffff (stack)
 
