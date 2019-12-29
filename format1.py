@@ -29,7 +29,7 @@ log.info('target_addr: %08x', target_addr)
       |     ...                            |
       +----------------                    |
   ?   | align & ~0xf                       |
-      +---------------- <- bp_main         |
+      +---------------- <-- bp_main        |
   4   | bp_start                           |
       +================ (main)             |
   4   | start+X (call)                     |
