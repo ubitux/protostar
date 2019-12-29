@@ -24,7 +24,7 @@ runvm: isocheck
 	qemu-system-x86_64 -enable-kvm -m 2G -nic user,$(HOSTFWD) -cdrom $(ISO)
 
 isocheck: $(ISO)
-	echo "46429afa18c472b0195b0378a5174a09bdc148e423919e7089c7b13ec23a1cf2 $(ISO)" | sha256sum -c
+	echo "d030796b11e9251f34ee448a95272a4d432cf2ce $<" | sha1sum -c
 
 $(ISO):
 	wget https://download.vulnhub.com/exploitexercises/$@ -O $@
