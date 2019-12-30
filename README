@@ -304,3 +304,18 @@ heap1
                                    ^^^^^^^^^^^^^^^^^^^^^^^
                                            data (b)
 00000040  00 00 00 00 c1 0f 02 00  00 00 00 00 00 00 00 00  |................|
+
+
+heap2
+-----
+
+This one has a bug in the auth struct size, which makes the code vulnerable to
+a heap overflow. According to the description, this is not what is supposed to
+be exploited, but instead the stale pointer (use after free).
+
+There is also a small bug in the "service" string length (not honoring the
+space).
+
+Anyway, a reset order frees the pointer without null-ing it, so the next alloc
+re-uses the same address and we can write whatever we want to control its
+content.
