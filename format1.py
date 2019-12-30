@@ -9,41 +9,6 @@ e = ELF(lbin)
 target_addr = e.symbols['target']
 log.info('target_addr: %08x', target_addr)
 
-'''
-      .
-      .
-  4   | bp_vuln
-      +================ (printf)
-  4   | vuln+X (call)
-      +---------------- <-- sp_vuln    ($0, content not leakable as "$0" is not valid)
-      | fmt ptr
- 0x18 |----------------                 $1
-      |     ...                         ..
-      +---------------- <-- bp_vuln     $6
-  4   | bp_main
-      +================ (vuln)          $7
-  4   | main+X (call)
-      +---------------- <-- sp_main     $8 (content leakable!)
-      | fmt ptr                       o----.
- 0x10 |----------------                    |
-      |     ...                            |
-      +----------------                    |
-  ?   | align & ~0xf                       |
-      +---------------- <-- bp_main        |
-  4   | bp_start                           |
-      +================ (main)             |
-  4   | start+X (call)                     |
-      +----------------                    |
-  ?   |     ...                            |
-      +---------------- <------------------' (misalign possible)
-  ?   | "<fmt> ... '\0'
-      +----------------
-  ?   |     ...
-      `---------------- 0xbfffffff (stack)
-
-'''
-
-
 # Always use the same arg length to keep a consistent stack pointer between
 # runs. Length is arbitrary but must be long enough to fit everything, increase
 # if necessary.

