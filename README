@@ -217,6 +217,10 @@ Actually trivial if relying on pwntools for the payload.
 Exploits: heap
 ==============
 
+
+heap0
+-----
+
 In gdb:
 - bp before mallocs
 - info proc mapping
@@ -279,3 +283,24 @@ able to insert zeroes (strcat).
 
 I could get away without looking at the malloc implementation this time. Not
 sure if it's going to last.
+
+
+heap1
+-----
+
+00000000  00 00 00 00 11 00 00 00  01 00 00 00 18 a0 04 08  |................|
+                                   ^^^^^^^^^^^ ^^^^^^^^^^^
+                                     a->val      a->data
+
+00000010  00 00 00 00 11 00 00 00  41 42 43 44 45 46 47 00  |........ABCDEFG.|
+                                   ^^^^^^^^^^^^^^^^^^^^^^^
+                                           data (a)
+
+00000020  00 00 00 00 11 00 00 00  02 00 00 00 38 a0 04 08  |............8...|
+                                   ^^^^^^^^^^^ ^^^^^^^^^^^
+                                     b->val      b->data
+
+00000030  00 00 00 00 11 00 00 00  61 62 63 64 65 66 67 00  |........abcdefg.|
+                                   ^^^^^^^^^^^^^^^^^^^^^^^
+                                           data (b)
+00000040  00 00 00 00 c1 0f 02 00  00 00 00 00 00 00 00 00  |................|
