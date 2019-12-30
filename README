@@ -4,7 +4,7 @@ See https://exploit.education/ for more information.
 This file documents bits of my though process and notes used for solving the
 exercises. Since this is a first-time learning experience on the topic for me,
 the solutions may be far from optimal. The exploits rely on pwntools for
-generating the payloads, but most of the research process is done with with a
+generating the payloads, but most of the research process is done with a
 barebone old gdb since the image is pretty old. I also used Ghidra locally to
 analyse the binaries.
 
