@@ -320,3 +320,329 @@ space).
 Anyway, a reset order frees the pointer without null-ing it, so the next alloc
 re-uses the same address and we can write whatever we want to control its
 content.
+
+
+heap3
+-----
+
+Heap evolution:
+
+3x malloc:
+
+00000000  00 00 00 00 29 00 00 00  00 00 00 00 00 00 00 00  |....)...........|
+00000010  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+00000020  00 00 00 00 00 00 00 00  00 00 00 00 29 00 00 00  |............)...|
+00000030  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+00000040  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+00000050  00 00 00 00 29 00 00 00  00 00 00 00 00 00 00 00  |....)...........|
+00000060  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+00000070  00 00 00 00 00 00 00 00  00 00 00 00 89 0f 00 00  |................|
+
+- 0x804c000  0x804d000     0x1000          0           [heap]
+- p0 = malloc(0x20) -> 0x804c008
+- p1 = malloc(0x20) -> 0x804c030
+- p2 = malloc(0x20) -> 0x804c058
+
+3x strcpy (0x20 sized null-terminated arguments):
+
+00000000  00 00 00 00 29 00 00 00 [61 61 61 61 62 61 61 61  |....)...aaaabaaa|
+00000010  63 61 61 61 64 61 61 61  65 61 61 61 66 61 61 61  |caaadaaaeaaafaaa|
+00000020  67 61 61 61 68 61 61 00] 00 00 00 00 29 00 00 00  |gaaahaa.....)...|
+00000030 [69 61 61 61 6a 61 61 61  6b 61 61 61 6c 61 61 61  |iaaajaaakaaalaaa|
+00000040  6d 61 61 61 6e 61 61 61  6f 61 61 61 70 61 61 00] |maaanaaaoaaapaa.|
+00000050  00 00 00 00 29 00 00 00 [71 61 61 61 72 61 61 61  |....)...qaaaraaa|
+00000060  73 61 61 61 74 61 61 61  75 61 61 61 76 61 61 61  |saaataaauaaavaaa|
+00000070  77 61 61 61 78 61 61 00] 00 00 00 00 89 0f 00 00  |waaaxaa.........|
+
+free(p2):
+
+00000000  00 00 00 00 29 00 00 00 [61 61 61 61 62 61 61 61  |....)...aaaabaaa|
+00000010  63 61 61 61 64 61 61 61  65 61 61 61 66 61 61 61  |caaadaaaeaaafaaa|
+00000020  67 61 61 61 68 61 61 00] 00 00 00 00 29 00 00 00  |gaaahaa.....)...|
+00000030 [69 61 61 61 6a 61 61 61  6b 61 61 61 6c 61 61 61  |iaaajaaakaaalaaa|
+00000040  6d 61 61 61 6e 61 61 61  6f 61 61 61 70 61 61 00] |maaanaaaoaaapaa.|
+00000050  00 00 00 00 29 00 00 00 [00 00 00 00 72 61 61 61  |....).......raaa|
+                                   ^^^^^^^^^^^
+                           in payload + no other change
+
+00000060  73 61 61 61 74 61 61 61  75 61 61 61 76 61 61 61  |saaataaauaaavaaa|
+00000070  77 61 61 61 78 61 61 00] 00 00 00 00 89 0f 00 00  |waaaxaa.........|
+
+free(p1):
+
+00000000  00 00 00 00 29 00 00 00 [61 61 61 61 62 61 61 61  |....)...aaaabaaa|
+00000010  63 61 61 61 64 61 61 61  65 61 61 61 66 61 61 61  |caaadaaaeaaafaaa|
+00000020  67 61 61 61 68 61 61 00] 00 00 00 00 29 00 00 00  |gaaahaa.....)...|
+00000030 [50 c0 04 08 6a 61 61 61  6b 61 61 61 6c 61 61 61  |P...jaaakaaalaaa|
+          ^^^^^^^^^^^
+          0x804c058-8 (p2)
+
+00000040  6d 61 61 61 6e 61 61 61  6f 61 61 61 70 61 61 00] |maaanaaaoaaapaa.|
+00000050  00 00 00 00 29 00 00 00 [00 00 00 00 72 61 61 61  |....).......raaa|
+00000060  73 61 61 61 74 61 61 61  75 61 61 61 76 61 61 61  |saaataaauaaavaaa|
+00000070  77 61 61 61 78 61 61 00] 00 00 00 00 89 0f 00 00  |waaaxaa.........|
+
+free(p0):
+
+                                  .-- p0 (0x804c008)
+                                  v
+00000000  00 00 00 00 29 00 00 00 [28 c0 04 08 62 61 61 61  |....)...(...baaa|
+          ~~~~~~~~~~~~~~~~~~~~~~~  ^^^^^^^^^^^
+                  p0 meta          0x0804c028 (p1-0x8), written on free(p0)
+
+00000010  63 61 61 61 64 61 61 61  65 61 61 61 66 61 61 61  |caaadaaaeaaafaaa|
+00000020  67 61 61 61 68 61 61 00] 00 00 00 00 29 00 00 00  |gaaahaa.....)...|
+                                   ~~~~~~~~~~~~~~~~~~~~~~~
+                                           p1 meta
+
+         .-- p1 (0x804c030)
+         v
+00000030 [50 c0 04 08 6a 61 61 61  6b 61 61 61 6c 61 61 61  |P...jaaakaaalaaa|
+          ^^^^^^^^^^^
+          0x0804c050 (p2-0x8), written on free(p1)
+
+
+00000040  6d 61 61 61 6e 61 61 61  6f 61 61 61 70 61 61 00] |maaanaaaoaaapaa.|
+
+                                  .-- p2 (0x804c058)
+                                  v
+00000050  00 00 00 00 29 00 00 00 [00 00 00 00 72 61 61 61  |....).......raaa|
+          ~~~~~~~~~~~~~~~~~~~~~~~  ^^^^^^^^^^^
+                  p2 meta          NULL (no p3), written on free(p2)
+
+
+00000060  73 61 61 61 74 61 61 61  75 61 61 61 76 61 61 61  |saaataaauaaavaaa|
+00000070  77 61 61 61 78 61 61 00] 00 00 00 00 89 0f 00 00  |waaaxaa.........|
+                                   ^^^^^^^^^^^^^^^^^^^^^^^
+                                   footer post 3allocs
+                                     (d9 -> b1 -> b9)
+
+Bins evolution:
+
+(gdb) info address av_
+Symbol "av_" is static storage at address 0x804b160.
+(gdb) x/20x 0x804b160
+
+p0 malloc:
+
+0x804b160 <av_>:	0x00000049	0x00000000	0x00000000	0x00000000
+0x804b170 <av_+16>:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804b180 <av_+32>:	0x00000000	0x00000000	0x00000000	0x0804c028 (p1-0x8) <- next in line   // this is _av[11]
+0x804b190 <av_+48>:	0x00000000	0x00000000	0x00000000	0x0804b194
+0x804b1a0 <av_+64>:	0x0804b194	0x0804b19c	0x0804b19c	0x0804b1a4
+...
+
+p1 malloc:
+
+ 0x804b160 <av_>:	0x00000049	0x00000000	0x00000000	0x00000000
+ 0x804b170 <av_+16>:	0x00000000	0x00000000	0x00000000	0x00000000
+-0x804b180 <av_+32>:	0x00000000	0x00000000	0x00000000	0x0804c028 (p1-0x8) <- give this one
++0x804b180 <av_+32>:	0x00000000	0x00000000	0x00000000	0x0804c050 (p2-0x8) <- next in line
+ 0x804b1a0 <av_+64>:	0x0804b194	0x0804b19c	0x0804b19c	0x0804b1a4
+
+p2 malloc:
+
+ 0x804b160 <av_>:	0x00000049	0x00000000	0x00000000	0x00000000
+ 0x804b170 <av_+16>:	0x00000000	0x00000000	0x00000000	0x00000000
+-0x804b180 <av_+32>:	0x00000000	0x00000000	0x00000000	0x0804c050 (p2-0x8) <- give this one
++0x804b180 <av_+32>:	0x00000000	0x00000000	0x00000000	0x0804c078 (potential p3-0x8) <- next in line
+ 0x804b1a0 <av_+64>:	0x0804b194	0x0804b19c	0x0804b19c	0x0804b1a4
+
+p2 free:
+
+-0x804b160 <av_>:	0x00000049	0x00000000	0x00000000	0x00000000
+-0x804b170 <av_+16>:	0x00000000	0x00000000	0x00000000	0x00000000
++0x804b160 <av_>:	0x00000048	0x00000000	0x00000000	0x00000000
++0x804b170 <av_+16>:	0x0804c050	0x00000000	0x00000000	0x00000000
+ 0x804b180 <av_+32>:	0x00000000	0x00000000	0x00000000	0x0804c078
+ 0x804b190 <av_+48>:	0x00000000	0x00000000	0x00000000	0x0804b194
+ 0x804b1a0 <av_+64>:	0x0804b194	0x0804b19c	0x0804b19c	0x0804b1a4
+
+p1 free:
+
+ 0x804b160 <av_>:	0x00000048	0x00000000	0x00000000	0x00000000
+-0x804b170 <av_+16>:	0x0804c050	0x00000000	0x00000000	0x00000000
++0x804b170 <av_+16>:	0x0804c028	0x00000000	0x00000000	0x00000000
+ 0x804b180 <av_+32>:	0x00000000	0x00000000	0x00000000	0x0804c078
+ 0x804b190 <av_+48>:	0x00000000	0x00000000	0x00000000	0x0804b194
+ 0x804b1a0 <av_+64>:	0x0804b194	0x0804b19c	0x0804b19c	0x0804b1a4
+
+p0 free:
+
+ 0x804b160 <av_>:	0x00000048	0x00000000	0x00000000	0x00000000
+-0x804b170 <av_+16>:	0x0804c028	0x00000000	0x00000000	0x00000000
++0x804b170 <av_+16>:	0x0804c000	0x00000000	0x00000000	0x00000000
+ 0x804b180 <av_+32>:	0x00000000	0x00000000	0x00000000	0x0804c078
+ 0x804b190 <av_+48>:	0x00000000	0x00000000	0x00000000	0x0804b194
+ 0x804b1a0 <av_+64>:	0x0804b194	0x0804b19c	0x0804b19c	0x0804b1a4
+
+
+Random notes:
+
+- allocation header metadata is 8 bytes containing 2 offsets we'll call "next"
+  and "prev".
+
+- sequence is: 3x malloc, 3x strcpy, 3x free, 1x puts. Our main lever is during
+  the strcpys to affect the following frees. And we likely want to affect the
+  puts by redirecting it to the winner function.
+
+- during the strcpy themselves, we can directly corrupt the following free(p2)
+  and free(p1), respectively by overflowing p1 and p0.
+
+- looking at free() decompiled code, we can see can distinguish a few writing
+  scenarios:
+
+    * writing of pointers at symbols av_ (approximately 284 intptr), without
+      much control over the content. We have ways of altering where we write in
+      av_ though.
+
+    * writing of pointers within payload at the end of free (we see that in
+      dumps above), but very little control available here
+
+    * 2 weird data swap
+
+
+The data swap is what gives us most control, so let's decompose it. Pseudo code
+is basically:
+
+    a = z[2]
+    b = z[3]
+    a[3] = b
+    b[2] = a
+
+Where z is an offset dynamically calculated according to p and its prev
+metadata.
+
+The swap can be represented like this:
+
+     .
+     .
+     +---------------- z
+  4  |
+     +---------------- z + 1
+  4  |
+     +---------------- z + 2 (p)
+  4  | a (input)       o----------.
+     +---------------- z + 3      |
+  4  | b (input)       o------.   |
+     +----------------        |   |
+     .                        |   |
+     .                        |   |
+     +---------------- <------'-- | --.
+  4  |                            |   |
+     +---------------- b + 1      |   |
+  4  |                            |   |
+     +---------------- b + 2      |   |
+  4  | a (output)      o------.   |   |
+     +----------------        |   |   |
+     .                        |   |   |
+     .                        |   |   |
+     +---------------- <------'---'   |
+  4  |                                |
+     +---------------- a + 1          |
+  4  |                                |
+     +---------------- a + 2          |
+  4  |                                |
+     +---------------- a + 3          |
+  4  | b (output)      o--------------'
+     +----------------
+     .
+     .
+
+We want to basically swap got.puts and winner, but the swap has the side effect
+of trying to write into winner's bytecode. This means we need an intermediate
+shellcode/jumper. Our a and b would be got.puts and the jumper.
+
+The simplest way to access the jumper seems to be the heap as it seems we can't
+really write what we want to av_ (too bad since the address doesn't change). We
+could also consider the stack (through argv) if the heap pointer wasn't
+guessable but the stack was.
+
+Applying the swap layout to our case would look like this after the swap is
+executed:
+
+     .
+     .
+     +---------------- z
+  4  |
+     +---------------- z + 1
+  4  |
+     +---------------- z + 2
+  4  | sh              o-------------.
+     +---------------- z + 3         |
+  4  | got.puts-8      o--------.    |
+     +----------------          |    |
+     .                          |    |
+     .                          |    |
+     +---------------- <--------'--- | ---. got.puts-8
+  4  |                               |    |
+     +---------------- got.puts-4    |    |
+  4  |                               |    |
+     +---------------- got.puts      |    |
+  4  | sh              o--------.    |    |
+     +----------------          |    |    |
+     .                          |    |    |
+     .                          |    |    |
+     +---------------- sh <-----'----'    |
+     | jmp winner                         |
+     |                                    |
+ 0xc |    ...                             |
+     |                                    |
+     |                                    |
+     +---------------- sh + 0xc           |
+  4  | got.puts-8      o------------------'
+     +----------------
+     .
+     .
+
+Conditions required for the swap to work:
+
+- our jumper must fit within 12B (not problematic)
+- meta_next > _av[0] (0x49 initially, so 0x50)
+- meta_next & (1<<1) == 0 (true with 0x50)
+- meta_next & (1<<0) == 0 (true with 0x50)
+- find meta_prev such that z is the closest possible to our allocated data
+
+We have z = p - 8 - meta_prev. To have z+2 and z+3 (swap parameters) as close
+to p as possible, we would pick meta_prev=0, but this isn't possible because of
+strcpy, so instead we will arbitrarily pick -4:
+
+     .
+     .
+     +---------------- p - 8 (meta_prev)
+  4  | 0xfffffffc (-4)
+     +---------------- p - 4 (meta_next), z
+  4  | 0x50
+     +---------------- p
+  4  | <whatever>
+     +---------------- z + 2
+  4  | sh (p1+0xc)     o--------.
+     +---------------- z + 3    |
+  4  | got.puts-8               |
+     +---------------- <--------'  sh
+     | mov eax, winner
+ 0xc | jmp eax
+     |
+     +----------------
+  4  | <swap garbage dst>
+     +----------------
+     .
+     .
+
+Now we have the choice of when to execute the swap: in free(p2) or free(p1). I
+picked free(p1) so we corrupt the memory as late as possible.
+
+Also one cool thing about picking free(p1) and 0x50 for the swap trigger
+condition is that is it makes sure only one swap is triggered. Indeed, the
+condition on av_[11] that prevents the second swap is true with and only with
+meta_next == 0x50: indeed, _av[11] == 0x0804c078 is compared with p1 - 8 +
+(0x50 & 0xfffffffc).
+
+Doing the swap in free(p2) is definitely possible (the initial exploit was
+actually doing that) but it requires faking a 4th allocation at p1-8+0x50 with
+something like 0x1 (it needs to meet the condition x&1) in its meta_next.
+
+One thing I'm not satisfied with though is that the exploit has to hardcode the
+exploit heap address of the shellcode. I tried to corrupt the metadata such
+that free() would actually write the pointer itself in the "swap configuration"
+for the next free, but couldn't manage to do that. SAD.
