@@ -14,7 +14,8 @@ Environment
 
 The vm can be downloaded (if needed) and started with `make runvm`. It depends
 on qemu, and re-binds all the necessary ports on localhost:<port>+10000 (e.g:
-SSH/22 with `ssh -p10022 user@localhost`)
+SSH/22 with `ssh -p10022 user@localhost`). `make connect` is also provided as a
+helper.
 
 If the vm is started, all the exploits can be executed on that vm using `make`
 or `make all`. A few notes:

@@ -32,6 +32,9 @@ runvm: isocheck
 isocheck: $(ISO)
 	echo "d030796b11e9251f34ee448a95272a4d432cf2ce $<" | sha1sum -c
 
+connect:
+	ssh user@localhost -p 10022
+
 $(ISO):
 	wget https://github.com/ExploitEducation/Protostar/releases/download/v2.0.0/$@ -O $@
 
@@ -47,4 +50,4 @@ net1: PORT = 12998
 net2: PORT = 12997
 net3: PORT = 12996
 
-.PHONY: all net stack format heap runvm isocheck $(ALL)
+.PHONY: all net stack format heap runvm isocheck connect $(ALL)
