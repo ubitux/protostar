@@ -41,9 +41,9 @@ $(ISO):
 $(ALL): HOST = localhost
 $(ALL): USER = user
 $(ALL): PASS = user
-$(ALL): PORT = 10022
+$(ALL): SSH_PORT = 10022
 $(ALL): venv
-	(. venv/bin/activate && python $@.py HOST=$(HOST) USER=$(USER) PASS=$(PASS) PORT=$(PORT) BIN=/opt/protostar/bin/$@)
+	(. venv/bin/activate && python $@.py HOST=$(HOST) USER=$(USER) PASS=$(PASS) PORT=$(PORT) SSH_PORT=$(SSH_PORT) BIN=/opt/protostar/bin/$@)
 
 net0: PORT = 12999
 net1: PORT = 12998

@@ -1,6 +1,6 @@
 from pwn import *
 
-s = ssh(host=args.HOST, user=args.USER, password=args.PASS, port=int(args.PORT))
+s = ssh(host=args.HOST, user=args.USER, password=args.PASS, port=int(args.SSH_PORT))
 
 with s.system(args.BIN) as p:
     p.recvline()

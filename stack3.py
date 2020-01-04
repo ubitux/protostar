@@ -1,7 +1,7 @@
 from pwn import *
 import os.path as op
 
-s = ssh(host=args.HOST, user=args.USER, password=args.PASS, port=int(args.PORT))
+s = ssh(host=args.HOST, user=args.USER, password=args.PASS, port=int(args.SSH_PORT))
 
 lbin = op.join('/tmp', op.basename(args.BIN))
 s.download_file(args.BIN, local=lbin)

@@ -1,7 +1,7 @@
 from pwn import *
 import os.path as op
 
-s = ssh(host=args.HOST, user=args.USER, password=args.PASS, port=int(args.PORT))
+s = ssh(host=args.HOST, user=args.USER, password=args.PASS, port=int(args.SSH_PORT))
 
 # locate a gadget to use to jump to our shellcode
 lbin = op.join('/tmp', op.basename(args.BIN))
