@@ -640,3 +640,41 @@ One thing I'm not satisfied with though is that the exploit has to hardcode the
 exploit heap address of the shellcode. I tried to corrupt the metadata such
 that free() would actually write the pointer itself in the "swap configuration"
 for the next free, but couldn't manage to do that. SAD.
+
+
+Exploits: final
+===============
+
+final0
+------
+
+      .
+      .
+      +---------------- sp_get_username
+  4   | buf ptr         o--.
+      |----------------    |
+  4   | memset chr (0)     |
+      |----------------    |
+  4   | size (512)         |
+      |----------------    |
+      |                    |
+  8   |      ...           |
+      |                    |
+      +---------------- <--'
+      |
+0x200 | buf
+      |
+      +----------------
+      |
+ 0x10 |      ...
+      |
+      +---------------- bp_get_username
+  4   | bp_main
+      +================ (get_username)
+  4   | main+X
+      +----------------
+  ?   |     ...
+      `---------------- 0xbfffffff (stack)
+
+
+

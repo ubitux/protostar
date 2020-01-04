@@ -2,15 +2,17 @@ XNET = $(addprefix net,0 1 2 3)
 XSTK = $(addprefix stack,0 1 2 3 4 5 6 7)
 XFMT = $(addprefix format,0 1 2 3 4)
 XHEP = $(addprefix heap,0 1 2 3)
+XFNL = $(addprefix final,0)
 
-ALL = $(XNET) $(XSTK) $(XFMT) $(XHEP)
+ALL = $(XNET) $(XSTK) $(XFMT) $(XHEP) $(XFNL)
 
 HOSTFWD_SSH  = hostfwd=tcp::10022-:22
 HOSTFWD_NET0 = hostfwd=tcp::12999-:2999
 HOSTFWD_NET1 = hostfwd=tcp::12998-:2998
 HOSTFWD_NET2 = hostfwd=tcp::12997-:2997
 HOSTFWD_NET3 = hostfwd=tcp::12996-:2996
-HOSTFWD = $(HOSTFWD_SSH),$(HOSTFWD_NET0),$(HOSTFWD_NET1),$(HOSTFWD_NET2),$(HOSTFWD_NET3)
+HOSTFWD_FNL0 = hostfwd=tcp::12995-:2995
+HOSTFWD = $(HOSTFWD_SSH),$(HOSTFWD_NET0),$(HOSTFWD_NET1),$(HOSTFWD_NET2),$(HOSTFWD_NET3),$(HOSTFWD_FNL0)
 
 ISO = exploit-exercises-protostar-2.iso
 
@@ -20,6 +22,7 @@ net: $(XNET)
 stack: $(XSTK)
 format: $(XFMT)
 heap: $(XHEP)
+final: $(XFNL)
 
 venv:
 	virtualenv -p python2 $@
@@ -49,5 +52,6 @@ net0: PORT = 12999
 net1: PORT = 12998
 net2: PORT = 12997
 net3: PORT = 12996
+final0: PORT = 12995
 
-.PHONY: all net stack format heap runvm isocheck connect $(ALL)
+.PHONY: all net stack format heap final runvm isocheck connect $(ALL)
